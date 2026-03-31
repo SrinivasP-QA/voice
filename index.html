@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="kn">
 <head>
@@ -46,6 +45,14 @@ button {
   margin-top: 15px;
   color: #aaa;
 }
+
+.voice-list {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #ccc;
+  max-height: 120px;
+  overflow: auto;
+}
 </style>
 
 </head>
@@ -71,11 +78,16 @@ button {
 <button onclick="resume()">▶ Resume</button>
 <button onclick="stop()">⏹ Stop</button>
 
+<button onclick="showVoices()">🔍 Show Voices</button>
+
 <div class="status" id="status"></div>
+
+<div class="voice-list" id="voiceList"></div>
 
 <script>
 let utterance;
 
+// Emotion settings
 function getEmotionSettings(emotion) {
   switch (emotion) {
     case "happy": return { rate: 1.1, pitch: 1.4 };
@@ -85,6 +97,20 @@ function getEmotionSettings(emotion) {
   }
 }
 
+// Get Kannada voice
+function getKannadaVoice() {
+  const voices = speechSynthesis.getVoices();
+
+  let voice = voices.find(v => v.lang === "kn-IN");
+
+  if (!voice) {
+    voice = voices.find(v => v.lang.toLowerCase().includes("kn"));
+  }
+
+  return voice;
+}
+
+// Speak function
 function speak() {
   const text = document.getElementById("text").value;
   const emotion = document.getElementById("emotion").value;
@@ -100,8 +126,14 @@ function speak() {
   utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "kn-IN";
 
-  const voices = synth.getVoices();
-  utterance.voice = voices.find(v => v.lang.includes("kn")) || voices[0];
+  const voice = getKannadaVoice();
+
+  if (!voice) {
+    document.getElementById("status").innerText =
+      "⚠️ Kannada voice not found. Install Kannada language in system.";
+  } else {
+    utterance.voice = voice;
+  }
 
   const settings = getEmotionSettings(emotion);
   utterance.rate = settings.rate;
@@ -118,6 +150,7 @@ function speak() {
   synth.speak(utterance);
 }
 
+// Controls
 function pause() {
   speechSynthesis.pause();
 }
@@ -129,6 +162,23 @@ function resume() {
 function stop() {
   speechSynthesis.cancel();
 }
+
+// Debug: show voices
+function showVoices() {
+  const voices = speechSynthesis.getVoices();
+  const list = document.getElementById("voiceList");
+
+  list.innerHTML = "<b>Available Voices:</b><br>";
+
+  voices.forEach(v => {
+    list.innerHTML += `${v.name} (${v.lang})<br>`;
+  });
+}
+
+// Load voices
+speechSynthesis.onvoiceschanged = () => {
+  speechSynthesis.getVoices();
+};
 </script>
 
 </body>
