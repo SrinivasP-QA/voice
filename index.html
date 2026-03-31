@@ -1,1 +1,135 @@
 
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kannada Voice Generator</title>
+
+<style>
+body {
+  background: #0f0f14;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+  padding: 40px;
+}
+
+h1 {
+  color: #e8be6a;
+}
+
+textarea {
+  width: 90%;
+  height: 150px;
+  border-radius: 10px;
+  border: none;
+  padding: 15px;
+  font-size: 18px;
+  margin-top: 20px;
+}
+
+select, button {
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button {
+  background: #e8be6a;
+}
+
+.status {
+  margin-top: 15px;
+  color: #aaa;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🎙 Kannada Text to Speech</h1>
+
+<textarea id="text" placeholder="ಇಲ್ಲಿ ನಿಮ್ಮ ಕನ್ನಡ ಪಾಠವನ್ನು ಬರೆಯಿರಿ..."></textarea>
+
+<br>
+
+<select id="emotion">
+  <option value="normal">Normal</option>
+  <option value="happy">Happy 😊</option>
+  <option value="sad">Sad 😢</option>
+  <option value="excited">Excited 🎉</option>
+</select>
+
+<br>
+
+<button onclick="speak()">▶ Speak</button>
+<button onclick="pause()">⏸ Pause</button>
+<button onclick="resume()">▶ Resume</button>
+<button onclick="stop()">⏹ Stop</button>
+
+<div class="status" id="status"></div>
+
+<script>
+let utterance;
+
+function getEmotionSettings(emotion) {
+  switch (emotion) {
+    case "happy": return { rate: 1.1, pitch: 1.4 };
+    case "sad": return { rate: 0.8, pitch: 0.7 };
+    case "excited": return { rate: 1.2, pitch: 1.6 };
+    default: return { rate: 1, pitch: 1 };
+  }
+}
+
+function speak() {
+  const text = document.getElementById("text").value;
+  const emotion = document.getElementById("emotion").value;
+
+  if (!text) {
+    alert("Please enter Kannada text");
+    return;
+  }
+
+  const synth = window.speechSynthesis;
+  synth.cancel();
+
+  utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "kn-IN";
+
+  const voices = synth.getVoices();
+  utterance.voice = voices.find(v => v.lang.includes("kn")) || voices[0];
+
+  const settings = getEmotionSettings(emotion);
+  utterance.rate = settings.rate;
+  utterance.pitch = settings.pitch;
+
+  utterance.onstart = () => {
+    document.getElementById("status").innerText = "Speaking...";
+  };
+
+  utterance.onend = () => {
+    document.getElementById("status").innerText = "Completed ✅";
+  };
+
+  synth.speak(utterance);
+}
+
+function pause() {
+  speechSynthesis.pause();
+}
+
+function resume() {
+  speechSynthesis.resume();
+}
+
+function stop() {
+  speechSynthesis.cancel();
+}
+</script>
+
+</body>
+</html>
